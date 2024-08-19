@@ -1,0 +1,16 @@
+@import "../../scss/helper.scss";
+
+.wrapper {
+  height: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+}
+
+.errorText {
+  position: absolute;
+  left: 0;
+  bottom: -30%;
+  color: $error;
+}
