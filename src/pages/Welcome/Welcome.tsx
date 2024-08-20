@@ -15,8 +15,6 @@ import { Statistics } from "./parts";
 
 import styles from "./styles.module.scss";
 
-console.log(Math.ceil(2.1));
-
 const initialValues: IInitGame = {
   name: "",
   complexity: "",

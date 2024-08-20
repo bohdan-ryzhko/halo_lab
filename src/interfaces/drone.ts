@@ -1,9 +1,10 @@
-export type Position = {
+export type Coordinates = {
   x: number;
   y: number;
 };
 
 export type DroneState = {
-  position: Position;
+  position: Coordinates;
   isCrashed: boolean;
+  speed: Coordinates;
 };

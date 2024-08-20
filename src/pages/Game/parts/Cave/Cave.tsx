@@ -1,16 +1,21 @@
 import { FC, useEffect, useRef, useState } from "react";
-import { useAppDispatch, useReduxStore } from "../../../../hooks";
+import { useAppDispatch, useReduxStore, useScroll } from "../../../../hooks";
 import { socket } from "../../../../utils";
 import { Drone } from "../Drone";
-import { setCaveCoordinates } from "../../../../redux";
+import {
+  setCaveCoordinates,
+  setCaveError,
+  setCaveStatus,
+} from "../../../../redux";
+import { wsStatuses } from "../../../../constants";
+import { ExitGame } from "../../../../components";
 
 const halfContainer = 250;
 
 export const Cave: FC = () => {
   const { auth, init, cave, drone } = useReduxStore();
   const dispatch = useAppDispatch();
-  const caveRef = useRef<HTMLDivElement | null>(null);
-  const [scrolling, setScrolling] = useState(false);
+  const [scrolling, caveRef] = useScroll<HTMLDivElement>();
   const [caveOffset, setCaveOffset] = useState(0);
 
   const wsRef = useRef<WebSocket | null>(null);
@@ -22,7 +27,8 @@ export const Cave: FC = () => {
       endpoint: "cave",
       message: `player:${init.data.id}-${auth.data.token}`,
       onmessage: ({ data }) => {
-        if (data === "finished") return;
+        if (data === "finished")
+          return dispatch(setCaveStatus(wsStatuses.FINISHED));
 
         const [left, right] = data.split(",");
 
@@ -31,7 +37,7 @@ export const Cave: FC = () => {
         dispatch(setCaveCoordinates([Number(left), Number(right)]));
       },
       onerror: (event) => {
-        console.log(event);
+        dispatch(setCaveError(event));
       },
       onclose: (event) => {
         console.log(event);
@@ -51,33 +57,6 @@ export const Cave: FC = () => {
       wsRef.current = null;
     }
   }, [drone.isCrashed]);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (caveRef.current) {
-        const height = caveRef.current.offsetHeight;
-        const windowHeight = window.innerHeight;
-
-        if (height > windowHeight) {
-          setScrolling(true);
-        } else {
-          setScrolling(false);
-        }
-      }
-    };
-
-    handleScroll();
-
-    const observer = new MutationObserver(handleScroll);
-
-    if (caveRef.current) {
-      observer.observe(caveRef.current, { childList: true, subtree: true });
-    }
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [cave.data.length]);
 
   useEffect(() => {
     const halfScreen = window.innerHeight / 2;
@@ -100,36 +79,42 @@ export const Cave: FC = () => {
   if (cave.data.length === 0) return null;
 
   return (
-    <div
-      style={{
-        width: `${cave.width}px`,
-        height: caveHeight,
-        border: "1px solid black",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        margin: "10px auto",
-        position: "relative",
-        transform: `translateY(-${caveOffset}px)`,
-        transition: "transform 30ms linear",
-      }}
-      ref={caveRef}
-    >
-      <Drone scrolling={scrolling} />
-      <svg width={`${cave.width}px`} height={caveHeight}>
-        <path
-          d={`M ${leftWallPath}`}
-          fill="none"
-          stroke="black"
-          strokeWidth="1"
-        />
-        <path
-          d={`M ${rightWallPath}`}
-          fill="none"
-          stroke="black"
-          strokeWidth="1"
-        />
-      </svg>
-    </div>
+    <>
+      {cave.error && <ExitGame />}
+
+      {!cave.error && (
+        <div
+          style={{
+            width: `${cave.width}px`,
+            height: caveHeight,
+            border: "1px solid black",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            margin: "10px auto",
+            position: "relative",
+            transform: `translateY(-${caveOffset}px)`,
+            transition: "transform 30ms linear",
+          }}
+          ref={caveRef}
+        >
+          <Drone scrolling={scrolling} />
+          <svg width={`${cave.width}px`} height={caveHeight}>
+            <path
+              d={`M ${leftWallPath}`}
+              fill="none"
+              stroke="black"
+              strokeWidth="1"
+            />
+            <path
+              d={`M ${rightWallPath}`}
+              fill="none"
+              stroke="black"
+              strokeWidth="1"
+            />
+          </svg>
+        </div>
+      )}
+    </>
   );
 };

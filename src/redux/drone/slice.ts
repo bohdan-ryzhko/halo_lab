@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { DroneState, Position } from "../../interfaces";
+import { DroneState, Coordinates } from "../../interfaces";
 
 const initialState: DroneState = {
   position: {
@@ -7,13 +7,17 @@ const initialState: DroneState = {
     y: 0,
   },
   isCrashed: false,
+  speed: {
+    y: 1,
+    x: 5,
+  },
 };
 
 const droneSlice = createSlice({
   name: "drone",
   initialState,
   reducers: {
-    setPosition(state, { payload }: PayloadAction<Position>) {
+    setPosition(state, { payload }: PayloadAction<Coordinates>) {
       state.position = payload;
     },
     setCrashed(state, { payload }: PayloadAction<boolean>) {
@@ -22,8 +26,14 @@ const droneSlice = createSlice({
     resetPosition(state) {
       state.position = initialState.position;
     },
+    changeSpeed(state, { payload }: PayloadAction<Coordinates>) {
+      if (payload.y > 5 || payload.y < 1) return;
+
+      state.speed = payload;
+    },
   },
 });
 
-export const { setPosition, setCrashed, resetPosition } = droneSlice.actions;
+export const { setPosition, setCrashed, resetPosition, changeSpeed } =
+  droneSlice.actions;
 export const droneReducer = droneSlice.reducer;

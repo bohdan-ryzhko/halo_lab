@@ -1,9 +1,11 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { CaveState } from "../../interfaces";
+import { CaveState, CaveStatus } from "../../interfaces";
 
 const initialState: CaveState = {
   data: [],
   width: 500,
+  status: "",
+  error: null,
 };
 
 const caveSlice = createSlice({
@@ -16,8 +18,15 @@ const caveSlice = createSlice({
     resetCave(state) {
       state.data = initialState.data;
     },
+    setCaveStatus(state, action: PayloadAction<CaveStatus>) {
+      state.status = action.payload;
+    },
+    setCaveError(state, action) {
+      state.error = action.payload;
+    },
   },
 });
 
-export const { setCaveCoordinates, resetCave } = caveSlice.actions;
+export const { setCaveCoordinates, resetCave, setCaveStatus, setCaveError } =
+  caveSlice.actions;
 export const caveReducer = caveSlice.reducer;

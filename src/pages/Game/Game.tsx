@@ -1,4 +1,6 @@
 import { FC, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
 import { useAppDispatch, useReduxStore } from "../../hooks";
 import {
   fetchToken,
@@ -8,10 +10,13 @@ import {
   setStatistics,
   setWin,
 } from "../../redux";
-import { HalloModal, Loader } from "../../components";
-import { Cave } from "./parts";
-import { useNavigate } from "react-router-dom";
+
+import { ExitGame, HalloModal, Loader } from "../../components";
+import { Cave, Speedometer } from "./parts";
+
 import { routes } from "../../constants";
+
+import styles from "./styles.module.scss";
 
 export const Game: FC = () => {
   const { init, auth, drone } = useReduxStore();
@@ -34,7 +39,7 @@ export const Game: FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const toggleOpen = () => {
+  const handleClose = () => {
     dispatch(setCrashed(false));
     dispatch(resetCave());
     dispatch(resetPosition());
@@ -42,20 +47,23 @@ export const Game: FC = () => {
   };
 
   return (
-    <div
-      style={{ minHeight: "100vh", display: "flex", justifyContent: "center" }}
-    >
+    <div className={styles.wrapper}>
       {auth.loading && <Loader fullScreen />}
 
-      {!auth.loading && Boolean(auth.error) && <>Reload page</>}
+      {!auth.loading && Boolean(auth.error) && <ExitGame />}
 
-      {!auth.loading && Boolean(!auth.error) && <Cave />}
+      {!auth.loading && Boolean(!auth.error) && (
+        <div>
+          <Speedometer />
+          <Cave />
+        </div>
+      )}
 
       <HalloModal
         showButton={false}
         showCancelButton={false}
         open={drone.isCrashed}
-        setOpen={toggleOpen}
+        setOpen={handleClose}
         title="The drone crashed!"
       />
 
@@ -64,7 +72,7 @@ export const Game: FC = () => {
         showCancelButton={false}
         open={init.isWin}
         setOpen={() => {
-          toggleOpen();
+          handleClose();
           dispatch(setWin(false));
         }}
         title="Winner!"

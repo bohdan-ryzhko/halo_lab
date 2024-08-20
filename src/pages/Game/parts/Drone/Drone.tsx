@@ -1,12 +1,14 @@
 import { FC, useCallback, useEffect } from "react";
 import { useAppDispatch, useReduxStore } from "../../../../hooks";
 import {
+  changeSpeed,
   setCrashed,
   setPosition,
   setStatistics,
   setWin,
 } from "../../../../redux";
 import styles from "./styles.module.scss";
+import { droneSpeedX } from "../../../../constants";
 
 type props = {
   scrolling: boolean;
@@ -22,7 +24,11 @@ export const Drone: FC<props> = ({ scrolling }) => {
     (event: KeyboardEvent) => {
       const newPosition = { ...drone.position };
 
-      const speed = 5;
+      const speed =
+        init.complexity &&
+        Object.hasOwnProperty.call(droneSpeedX, init.complexity)
+          ? droneSpeedX[init.complexity as keyof typeof droneSpeedX]
+          : 5;
 
       switch (event.key) {
         case "ArrowLeft":
@@ -31,13 +37,19 @@ export const Drone: FC<props> = ({ scrolling }) => {
         case "ArrowRight":
           newPosition.x += speed;
           break;
+        case "ArrowUp":
+          dispatch(changeSpeed({ ...drone.speed, y: drone.speed.y + 1 }));
+          break;
+        case "ArrowDown":
+          dispatch(changeSpeed({ ...drone.speed, y: drone.speed.y - 1 }));
+          break;
         default:
           break;
       }
 
       dispatch(setPosition(newPosition));
     },
-    [dispatch, drone.position]
+    [dispatch, drone.position, drone.speed, init.complexity]
   );
 
   useEffect(() => {
@@ -68,7 +80,7 @@ export const Drone: FC<props> = ({ scrolling }) => {
       }
 
       interval = setInterval(() => {
-        const nextY = drone.position.y + 1;
+        const nextY = drone.position.y + drone.speed.y;
         const [leftWall, rightWall] = droneYPoint;
 
         const droneX = drone.position.x;
